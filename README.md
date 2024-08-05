@@ -1,6 +1,6 @@
 # NoMovementWhenIWant
 
-A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for [Resonite](https://resonite.com/) that disables movement based on a Cloud Variable's value.
+A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for [Resonite](https://resonite.com/) that disables movement based on a cloud variable's value.
 
 > [!WARNING]
 > This conflicts with [NoTankControls mod](https://github.com/Nytra/NoTankControls). Disable/remove one of the mods when used together.
