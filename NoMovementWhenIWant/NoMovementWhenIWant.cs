@@ -53,7 +53,6 @@ namespace NoMovementWhenIWant
 
         private static void CloudVariablePolling()
         {
-            Debug("polling");
             var worker = Userspace.Current;
 
             if (enabled && CloudVariableHelper.IsValidPath(cloudVariablePath))
@@ -73,7 +72,6 @@ namespace NoMovementWhenIWant
                     {
                         var value = proxy.ReadValue<bool>();
 
-                        // Debug("cloud variable poll: " + value);
                         cloudValue = value;
                     }
                 });
@@ -105,7 +103,6 @@ namespace NoMovementWhenIWant
                 {
                     if (cloudValue.HasValue)
                     {
-                        // Debug("BeforeInputUpdate value: " + cloudValue);
                         ____inputs.Axis.RegisterBlocks = (bool)cloudValue;
                     }
                 }
