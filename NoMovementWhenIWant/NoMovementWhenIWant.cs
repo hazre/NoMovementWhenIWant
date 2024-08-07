@@ -30,7 +30,6 @@ namespace NoMovementWhenIWant
         public static ModConfiguration config;
         private static bool? cloudValue = null;
         private static bool enabled = true;
-        private static bool noTankControlsCompatibility = true;
         private static string cloudVariablePath = null;
         private static int pollingAmount = 5;
         private static Chirality affectedHand = Chirality.Both;
