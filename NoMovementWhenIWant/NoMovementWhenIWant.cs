@@ -1,10 +1,5 @@
 using HarmonyLib;
 using ResoniteModLoader;
-using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using FrooxEngine;
 using SkyFrost.Base;
 
@@ -14,7 +9,7 @@ namespace NoMovementWhenIWant
     {
         public override string Name => "NoMovementWhenIWant";
         public override string Author => "hazre";
-        public override string Version => "1.0.0";
+        public override string Version => "1.1.0";
         public override string Link => "https://github.com/hazre/NoMovementWhenIWant/";
 
         [AutoRegisterConfigKey]
@@ -23,11 +18,20 @@ namespace NoMovementWhenIWant
         private static ModConfigurationKey<string> CLOUDVARIABLEPATH = new ModConfigurationKey<string>("CloudVariablePath", "Cloud Variable Path to to disable movement. Must be a bool.", () => "U-hazre.NoMovementWhenIWant");
         [AutoRegisterConfigKey]
         public static ModConfigurationKey<int> POLLING = new("polling", "How often it should check the cloud Variable? (In Seconds, 0 for instant)", () => 5);
+        [AutoRegisterConfigKey]
+        public static ModConfigurationKey<Chirality> CHIRALITY = new("chirality", "Which hand should be affected?", () => Chirality.Both);
         public static ModConfiguration config;
         private static bool? cloudValue = null;
         private static bool enabled = true;
         private static string cloudVariablePath = null;
         private static int pollingAmount = 5;
+        private static Chirality affectedHand = Chirality.Both;
+        public enum Chirality
+        {
+            Left,
+            Right,
+            Both
+        }
         public override void OnEngineInit()
         {
             config = GetConfiguration();
@@ -47,13 +51,13 @@ namespace NoMovementWhenIWant
             enabled = config.GetValue(ENABLED);
             cloudVariablePath = config.GetValue(CLOUDVARIABLEPATH);
             pollingAmount = config.GetValue(POLLING);
+            affectedHand = config.GetValue(CHIRALITY);
 
             updateCloudProxy();
         }
 
         private static void CloudVariablePolling()
         {
-            Debug("polling");
             var worker = Userspace.Current;
 
             if (enabled && CloudVariableHelper.IsValidPath(cloudVariablePath))
@@ -73,7 +77,6 @@ namespace NoMovementWhenIWant
                     {
                         var value = proxy.ReadValue<bool>();
 
-                        // Debug("cloud variable poll: " + value);
                         cloudValue = value;
                     }
                 });
@@ -99,15 +102,19 @@ namespace NoMovementWhenIWant
         [HarmonyPatch("BeforeInputUpdate")]
         class DisableMovementPatch
         {
+            [HarmonyAfter(new string[] { "owo.Nytra.NoTankControls" })]
             private static void Postfix(InteractionHandler __instance, ref InteractionHandlerInputs ____inputs)
             {
-                if (enabled)
+                if (!enabled || !cloudValue.GetValueOrDefault(false))
+                    return;
+
+                bool applyBlock = affectedHand == Chirality.Both ||
+                                  (affectedHand == Chirality.Left && __instance.Side == FrooxEngine.Chirality.Left) ||
+                                  (affectedHand == Chirality.Right && __instance.Side == FrooxEngine.Chirality.Right);
+
+                if (applyBlock)
                 {
-                    if (cloudValue.HasValue)
-                    {
-                        // Debug("BeforeInputUpdate value: " + cloudValue);
-                        ____inputs.Axis.RegisterBlocks = (bool)cloudValue;
-                    }
+                    ____inputs.Axis.RegisterBlocks = true;
                 }
             }
         }
