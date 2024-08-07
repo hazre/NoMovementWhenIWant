@@ -9,7 +9,7 @@ namespace NoMovementWhenIWant
     {
         public override string Name => "NoMovementWhenIWant";
         public override string Author => "hazre";
-        public override string Version => "1.0.0";
+        public override string Version => "1.1.0";
         public override string Link => "https://github.com/hazre/NoMovementWhenIWant/";
 
         [AutoRegisterConfigKey]
