@@ -22,8 +22,6 @@ namespace NoMovementWhenIWant
         [AutoRegisterConfigKey]
         private static ModConfigurationKey<bool> ENABLED = new ModConfigurationKey<bool>("Enable", "Enable NoMovementWhenIWant.", () => true);
         [AutoRegisterConfigKey]
-        private static ModConfigurationKey<bool> NO_TANK_CONTROLS_COMPATIBILITY = new ModConfigurationKey<bool>("NoTankControlsCompatibility", "Enable NoTankControls mod compatibility.", () => true);
-        [AutoRegisterConfigKey]
         private static ModConfigurationKey<string> CLOUDVARIABLEPATH = new ModConfigurationKey<string>("CloudVariablePath", "Cloud Variable Path to to disable movement. Must be a bool.", () => "U-hazre.NoMovementWhenIWant");
         [AutoRegisterConfigKey]
         public static ModConfigurationKey<int> POLLING = new("polling", "How often it should check the cloud Variable? (In Seconds, 0 for instant)", () => 5);
@@ -35,7 +33,6 @@ namespace NoMovementWhenIWant
         private static bool noTankControlsCompatibility = true;
         private static string cloudVariablePath = null;
         private static int pollingAmount = 5;
-        private static bool lastNoTankControlsState = false;
         private static Chirality affectedHand = Chirality.Both;
         public enum Chirality
         {
@@ -60,7 +57,6 @@ namespace NoMovementWhenIWant
         private void OnConfigurationChanged()
         {
             enabled = config.GetValue(ENABLED);
-            noTankControlsCompatibility = config.GetValue(NO_TANK_CONTROLS_COMPATIBILITY);
             cloudVariablePath = config.GetValue(CLOUDVARIABLEPATH);
             pollingAmount = config.GetValue(POLLING);
             affectedHand = config.GetValue(CHIRALITY);
@@ -145,23 +141,7 @@ namespace NoMovementWhenIWant
 
                         if (applyBlock)
                         {
-                            if (noTankControlsCompatibility)
-                            {
-                                if (____inputs.Axis.RegisterBlocks != lastNoTankControlsState)
-                                {
-                                    lastNoTankControlsState = ____inputs.Axis.RegisterBlocks;
-                                }
-                                else
-                                {
-                                    ____inputs.Axis.RegisterBlocks = true;
-                                }
-                            }
-                            else
-                            {
-                                ____inputs.Axis.RegisterBlocks = true;
-                            }
-
-                            lastNoTankControlsState = ____inputs.Axis.RegisterBlocks;
+                            ____inputs.Axis.RegisterBlocks = true;
                         }
                     }
                 }
