@@ -113,37 +113,16 @@ namespace NoMovementWhenIWant
             [HarmonyAfter(new string[] { "owo.Nytra.NoTankControls" })]
             private static void Postfix(InteractionHandler __instance, ref InteractionHandlerInputs ____inputs)
             {
-                if (enabled)
+                if (!enabled || !cloudValue.GetValueOrDefault(false))
+                    return;
+
+                bool applyBlock = affectedHand == Chirality.Both ||
+                                  (affectedHand == Chirality.Left && __instance.Side == FrooxEngine.Chirality.Left) ||
+                                  (affectedHand == Chirality.Right && __instance.Side == FrooxEngine.Chirality.Right);
+
+                if (applyBlock)
                 {
-                    bool shouldBlock = false;
-
-                    if (cloudValue.HasValue)
-                    {
-                        shouldBlock = (bool)cloudValue;
-                    }
-
-                    if (shouldBlock)
-                    {
-                        bool applyBlock = false;
-
-                        switch (affectedHand)
-                        {
-                            case Chirality.Left:
-                                applyBlock = __instance.Side == FrooxEngine.Chirality.Left;
-                                break;
-                            case Chirality.Right:
-                                applyBlock = __instance.Side == FrooxEngine.Chirality.Right;
-                                break;
-                            case Chirality.Both:
-                                applyBlock = true;
-                                break;
-                        }
-
-                        if (applyBlock)
-                        {
-                            ____inputs.Axis.RegisterBlocks = true;
-                        }
-                    }
+                    ____inputs.Axis.RegisterBlocks = true;
                 }
             }
         }
