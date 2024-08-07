@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using FrooxEngine;
 using SkyFrost.Base;
+using Elements.Core;
+using System.IO;
 
 namespace NoMovementWhenIWant
 {
@@ -25,6 +27,8 @@ namespace NoMovementWhenIWant
         private static ModConfigurationKey<string> CLOUDVARIABLEPATH = new ModConfigurationKey<string>("CloudVariablePath", "Cloud Variable Path to to disable movement. Must be a bool.", () => "U-hazre.NoMovementWhenIWant");
         [AutoRegisterConfigKey]
         public static ModConfigurationKey<int> POLLING = new("polling", "How often it should check the cloud Variable? (In Seconds, 0 for instant)", () => 5);
+        [AutoRegisterConfigKey]
+        public static ModConfigurationKey<Chirality> CHIRALITY = new("chirality", "Which hand should be affected?", () => Chirality.Both);
         public static ModConfiguration config;
         private static bool? cloudValue = null;
         private static bool enabled = true;
@@ -32,6 +36,13 @@ namespace NoMovementWhenIWant
         private static string cloudVariablePath = null;
         private static int pollingAmount = 5;
         private static bool lastNoTankControlsState = false;
+        private static Chirality affectedHand = Chirality.Both;
+        public enum Chirality
+        {
+            Left,
+            Right,
+            Both
+        }
         public override void OnEngineInit()
         {
             config = GetConfiguration();
@@ -52,6 +63,7 @@ namespace NoMovementWhenIWant
             noTankControlsCompatibility = config.GetValue(NO_TANK_CONTROLS_COMPATIBILITY);
             cloudVariablePath = config.GetValue(CLOUDVARIABLEPATH);
             pollingAmount = config.GetValue(POLLING);
+            affectedHand = config.GetValue(CHIRALITY);
 
             updateCloudProxy();
         }
@@ -114,28 +126,44 @@ namespace NoMovementWhenIWant
                         shouldBlock = (bool)cloudValue;
                     }
 
-                    if (noTankControlsCompatibility)
+                    if (shouldBlock)
                     {
-                        // Check if NoTankControls has changed the state
-                        if (____inputs.Axis.RegisterBlocks != lastNoTankControlsState)
+                        bool applyBlock = false;
+
+                        switch (affectedHand)
                         {
-                            // NoTankControls has likely modified the state, so we shouldn't override it
+                            case Chirality.Left:
+                                applyBlock = __instance.Side == FrooxEngine.Chirality.Left;
+                                break;
+                            case Chirality.Right:
+                                applyBlock = __instance.Side == FrooxEngine.Chirality.Right;
+                                break;
+                            case Chirality.Both:
+                                applyBlock = true;
+                                break;
+                        }
+
+                        if (applyBlock)
+                        {
+                            if (noTankControlsCompatibility)
+                            {
+                                if (____inputs.Axis.RegisterBlocks != lastNoTankControlsState)
+                                {
+                                    lastNoTankControlsState = ____inputs.Axis.RegisterBlocks;
+                                }
+                                else
+                                {
+                                    ____inputs.Axis.RegisterBlocks = true;
+                                }
+                            }
+                            else
+                            {
+                                ____inputs.Axis.RegisterBlocks = true;
+                            }
+
                             lastNoTankControlsState = ____inputs.Axis.RegisterBlocks;
                         }
-                        else
-                        {
-                            // NoTankControls hasn't changed the state, so we can apply our logic
-                            ____inputs.Axis.RegisterBlocks = shouldBlock;
-                        }
                     }
-                    else
-                    {
-                        // No compatibility mode, just apply our logic
-                        ____inputs.Axis.RegisterBlocks = shouldBlock;
-                    }
-
-                    // Update the last known state
-                    lastNoTankControlsState = ____inputs.Axis.RegisterBlocks;
                 }
             }
         }
